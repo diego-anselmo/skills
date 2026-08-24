@@ -5,7 +5,7 @@ description: End-to-end and security-first testing suite using Playwright. Gener
 
 # Secure E2E & Playwright CLI Protocol
 
-> **Crédito**: Arquitetura original por Matt Pocock ([mattpocock/skills](https://github.com/mattpocock/skills)). Adaptado para incluir a cultura de Segurança por Design no fork alltomatos/skills.
+> **Credito**: arquitetura original por Matt Pocock ([mattpocock/skills](https://github.com/mattpocock/skills)); cultura de Seguranca por Design iniciada em [alltomatos/skills](https://github.com/alltomatos/skills) e mantida por `diego-anselmo/skills`.
 
 A maioria dos testes de ponta a ponta (E2E) valida apenas o "caminho feliz" (Happy Path). Este protocolo estabelece que **testar segurança significa testar o caminho infeliz (Negative Testing)**. Se a aplicação diz que uma rota é restrita a administradores, devemos provar isso escrevendo um teste que tenta burlá-la e falha (portanto, retornando HTTP 403/401).
 

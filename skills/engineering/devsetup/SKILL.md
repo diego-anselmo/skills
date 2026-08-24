@@ -1,6 +1,7 @@
 ---
 name: devsetup
 description: Instala, via winget (e npm para o único caso que exige), o conjunto essencial de ferramentas pra deixar uma máquina Windows pronta pra programar com IA (Node LTS, Git, GitHub CLI, Go, uv, Windows Terminal, Chrome, Python, 7-Zip, Notepad++, Sublime Text, OmniRoute) — sem rodar nenhum script de terceiros, tweak de sistema ou instalador externo. Ativada explicitamente via `/devsetup`, e também sempre que o usuário disser que formatou/reinstalou o Windows, está numa VM/máquina nova, pedir pra "preparar o ambiente", "configurar essa máquina do zero", "instalar tudo que preciso pra programar", ou mencionar WinUtil/scripts de bootstrap de ambiente — mesmo sem citar os nomes exatos dos programas.
+disable-model-invocation: true
 ---
 
 # Provisionar ambiente de desenvolvimento Windows (/devsetup)

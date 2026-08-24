@@ -1,0 +1,5 @@
+interface:
+  display_name: "Orchestrator"
+  short_description: "Governa roadmap, Issues, execucao e QA"
+policy:
+  allow_implicit_invocation: false

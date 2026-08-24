@@ -1,0 +1,5 @@
+interface:
+  display_name: "Scaffold Exercises"
+  short_description: "Cria estrutura de exercicios"
+policy:
+  allow_implicit_invocation: false

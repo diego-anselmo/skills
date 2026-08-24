@@ -30,12 +30,19 @@ Evitar alucinações de API e assinaturas obsoletas em dependências externas (N
    }
    ```
 
-## FALLBACK LOCAL (OFFLINE / BLOCKED MODE)
-Context7 indisponível (HTTP 429, rede caída, sem internet) -> NÃO ABORTE FLUXO. 
-1. Buscar arquivo de tipagem local (`*.d.ts`, interfaces Go, declaration files) dentro de `node_modules/` ou vendor local.
-2. Inspecionar assinaturas diretamente do tipo para extrair parâmetros, tipos e métodos corretos e compatíveis com a versão instalada.
+## FALLBACKS
 
-## INTEGRAÇÃO SKILLS
-* **`/scaffold-mvp`**: Gerar manifesto `.claude/context7.json` base com ids da stack ativa.
-* **`/tdd` e `/diagnose`**: Erro compilação/tipagem -> rodar `/query-docs` antes de tentar correção ad-hoc.
-* **`/setup-skills`**: Criar diretório `.claude/` e manifesto `context7.json` vazio se ausente.
+Context7 sem a biblioteca ou sem resposta suficiente:
+
+1. confira tipos e codigo da versao instalada em `node_modules/` ou vendor;
+2. para pergunta ampla de plataforma, servico, spec ou comportamento entre fontes, invoque `/research`;
+3. diferencie assinatura confirmada de inferencia.
+
+Context7 offline (HTTP 429/rede indisponivel) nao autoriza inventar API. Use somente tipos e fontes locais verificaveis; se forem insuficientes, declare o bloqueio.
+
+## INTEGRACAO
+
+- `/scaffold-mvp`: gera manifesto `.claude/context7.json` base.
+- `/tdd` e `/diagnose`: erro de compilacao/tipagem usa `/query-docs` antes de correcao ad hoc.
+- `/research`: cobre investigacoes que excedem uma assinatura de biblioteca.
+- `/setup-skills`: cria `.claude/context7.json` quando essa convencao for adotada pelo projeto.

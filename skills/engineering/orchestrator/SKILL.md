@@ -1,6 +1,7 @@
 ---
 name: orchestrator
 description: Governa projetos com agentes, audita pre-condicoes, cria documentacao, transforma gaps em GitHub Issues e coordena execucao, testes e QA.
+disable-model-invocation: true
 ---
 
 # ORCHESTRATOR - Central de Controle
@@ -11,27 +12,29 @@ Planeja, governa, audita e delega execucao. Nao execute tarefas complexas direta
 
 Esta verificacao deve ocorrer no inicio de toda execucao do orchestrator, antes das pre-condicoes do projeto.
 
-1. Identifique de onde as skills foram instaladas. Para cada skill carregada, resolva o caminho real do link e procure o clone que contem `.claude-plugin/plugin.json` e `scripts/setup-alltomatos-skills.sh`.
-2. No clone encontrado, leia o remote `origin`, a branch atual e o commit local instalado.
-3. Consulte o remote do framework com `git fetch origin --quiet` ou mecanismo equivalente de leitura. Nunca faca `pull`, merge ou reset no clone do framework.
-4. Compare o commit local com `origin/<branch>` ou com a referencia remota equivalente.
-5. Se houver commits novos, informe imediatamente:
+1. Localize `.diego-anselmo-skills.json` no diretorio que contem a skill carregada ou em seu diretorio pai. O manifesto instalado e a fonte primaria de `source`, `ref`, `commit` e `version`; um clone local e opcional.
+2. Confirme que `source` e `diego-anselmo/skills`. Origem diferente deve ser informada como drift de proveniencia.
+3. Consulte a revisao remota de `ref` com `git ls-remote https://github.com/diego-anselmo/skills.git <ref>` ou API GitHub equivalente. Nunca faca `pull`, merge ou reset durante a verificacao.
+4. Compare o commit instalado com a revisao remota exata.
+5. Se houver commit novo, informe:
 
 ```text
 Atualizacao do framework disponivel
-- Framework: alltomatos/skills
-- Instalado: <commit ou data>
-- Disponivel: <commit ou data>
-- Novidades: <resumo dos commits ou arquivos alterados>
-- Acao: execute novamente o instalador apos revisar as mudancas
+- Framework: diego-anselmo/skills
+- Versao instalada: <version>
+- Ref: <ref>
+- Instalado: <commit>
+- Disponivel: <commit>
+- Novidades: <resumo factual dos commits ou arquivos>
+- Acao: revisar e autorizar o re-deploy
 ```
 
-6. Se houver commits novos, informe a atualizacao disponivel e execute o re-deploy das skills nos ambientes em uso. Use o instalador em modo nao interativo, por exemplo `scripts/setup-alltomatos-skills.sh --redeploy <diretorios-detectados>`. O re-deploy deve acontecer depois do `fetch`, sem sobrescrever backups existentes.
-7. Depois do re-deploy, confirme que `orchestrator` e `setup-skills` apontam para a revisao nova e informe o resultado ao usuario antes de continuar.
-8. Se nao houver mudancas, registre `Framework atualizado (<commit>)` sem interromper o fluxo.
-9. Se nao for possivel localizar o clone, o remote ou a rede, informe `Nao foi possivel verificar atualizacoes do framework` e continue apenas se as skills locais estiverem disponiveis. Nao faca re-deploy sem confirmar uma revisao nova.
+6. Nao atualize automaticamente. Uma revisao remota nova e informacao, nao autorizacao para mudar todas as skills em uso.
+7. Depois da autorizacao, execute `scripts/setup-diego-anselmo-skills.sh --redeploy <diretorios-detectados>` a partir de clone/cache persistente ou pelo instalador remoto.
+8. Confirme que o manifesto de cada destino registra o novo commit e que `orchestrator`, `implement`, `code-review`, `setup-skills` e `qa-analyst` vieram da mesma revisao.
+9. Se nao for possivel ler o manifesto, o remote ou a rede, informe `Nao foi possivel verificar atualizacoes do framework`; continue somente se as skills locais estiverem disponiveis e nao faca re-deploy.
 
-Quando uma revisao nova for confirmada, o re-deploy e automatico e faz parte do contrato do orchestrator. Para uma instalacao inicial ou troca de ambientes, a decisao continua sendo explicita do usuario por meio de `scripts/setup-alltomatos-skills.sh`.
+Instalacao inicial, troca de origem e atualizacao continuam decisoes explicitas do usuario. O framework nunca executa codigo novo apenas porque `main` avancou.
 
 ## Fase 0 - Pre-condicoes de governanca
 
@@ -104,17 +107,20 @@ Use slices verticais pequenos. Tarefas independentes podem ser executadas em par
 
 O orchestrator delega para skills especializadas, por exemplo:
 
-- `/tdd` para implementacao orientada a testes;
+- `/implement` para executar uma GitHub Issue aprovada;
+- `/tdd` para o loop red-green-refactor dentro da Issue;
+- `/code-review` para revisar Standards e Spec antes do QA;
 - `/secure-e2e` para fluxos E2E e seguranca;
-- `/diagnose` para bugs e regressao;
-- `/query-docs` para APIs de terceiros;
-- `/write-a-skill` para gargalos nao cobertos.
+- `/diagnose` para bugs e regressoes;
+- `/query-docs` para APIs pontuais de terceiros;
+- `/research` para investigacao ampla com fontes primarias;
+- `/write-a-skill` para gargalos recorrentes nao cobertos.
 
 ### Fila sequencial para Epics fatiados de um PRD
 
 Quando as Issues vierem do caso especial "projeto novo com apenas um PRD" (Fase 1), a execucao **nao** e paralela: despachar **um unico agente por vez**, na ordem de dependencia das Issues.
 
-1. Para o Epic atual, processar suas Issues fatiadas uma a uma: desenvolver -> QA (Fase 5) -> commit -> proxima Issue da fila. Repetir ate esgotar todas as Issues do Epic.
+1. Para o Epic atual, processe suas Issues uma a uma por `/implement`: TDD -> verificacoes -> commits locais -> `/code-review` -> `/qa-analyst` -> proxima Issue. Falha em review ou QA retorna a Issue ao ciclo antes de qualquer PR.
 2. Epic esgotado -> abrir PR da branch de trabalho para `develop`.
    * PR verde (CI/testes passam) -> merge em `develop`.
    * PR falhar -> corrigir os problemas, reexecutar a verificacao e so entao mergear.
@@ -125,6 +131,8 @@ Quando as Issues vierem do caso especial "projeto novo com apenas um PRD" (Fase 
 
 Depois de cada tarefa, execute verificacoes proporcionais e registre evidencia. Se falhar, invoque `/diagnose` antes de continuar.
 
-Quando a DAG estiver concluida, invoque obrigatoriamente `/qa-analyst`, sem excecao de tier. O QA deve confrontar requisitos, Issues, implementacao, testes, cenarios de erro e mudancas fora de escopo. Falhas reabrem Issues ou criam novas tarefas.
+Cada Issue passa por `/code-review` depois dos testes e commits locais. Corrija achados de Standards ou Spec antes de chamar QA.
 
-Somente depois da aprovacao do QA pode ocorrer a entrega por PR. Se nao existir uma skill de fluxo Git/PR instalada, descreva os passos e solicite confirmacao humana; nunca invoque uma skill inexistente.
+Quando a DAG estiver concluida, invoque obrigatoriamente `/qa-analyst`, sem excecao de tier. O QA confronta requisitos, Issues, implementacao, testes, cenarios de erro e mudancas fora de escopo. Falhas reabrem Issues ou criam novas tarefas e exigem novo code review.
+
+Commits locais podem anteceder QA porque fornecem um diff estavel e nao constituem entrega. Push da branch e abertura do PR somente ocorrem depois de QA aprovado. Se nao existir uma skill de fluxo Git/PR instalada, use as regras documentadas do repositorio; nunca invoque uma skill inexistente.

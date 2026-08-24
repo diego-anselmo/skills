@@ -65,6 +65,42 @@ Após um ciclo (ou quando pedido), faça análise de causa raiz dos bugs encontr
 - **Por que não foi pego antes?** (lacuna em qual camada de teste?)
 - **Prevenção sistêmica**: proposta concreta — regra de lint, teste de contrato, checklist de review, gate de CI. Uma sugestão acionável vale mais que dez genéricas.
 
+## Portao de entrega pre-PR
+
+Quando QA for chamado por `/implement` ou `/orchestrator`, ele e o ultimo portao depois de `/code-review`.
+
+Entradas obrigatorias:
+
+- Issue/spec e criterios de aceite;
+- diff ou commits locais contra a base;
+- veredito aprovado de Standards + Spec;
+- comandos e resultados de testes;
+- evidencia do smoke test da superficie alterada.
+
+Se code review estiver ausente ou reprovado, devolva o fluxo sem executar uma aprovacao substituta.
+
+Confronte:
+
+1. cada criterio de aceite com evidencia observavel;
+2. caminhos felizes, erros, limites, concorrencia e permissoes aplicaveis;
+3. comportamento real, nao somente testes;
+4. mudancas fora de escopo;
+5. regressao em fluxos vizinhos;
+6. secrets e dados sensiveis no diff/artefatos.
+
+Saida:
+
+```text
+QA: APROVADO | REPROVADO
+Issue:
+Code review:
+Evidencias executadas:
+Achados bloqueantes:
+Riscos residuais:
+```
+
+`APROVADO` libera push e abertura de PR. `REPROVADO` retorna para correcao, testes, commit local, novo code review e novo QA. QA nunca abre o PR como parte da avaliacao.
+
 ## Anti-Padrões
 
 - ❌ Testar só o caminho feliz.
