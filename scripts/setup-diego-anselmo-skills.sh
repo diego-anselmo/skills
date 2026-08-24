@@ -187,6 +187,23 @@ backup_stamp="$(date +%Y%m%d%H%M%S)"
 for dest in "${DESTS[@]}"; do
   mkdir -p "$dest"
   echo "Instalando em: $dest"
+  for marker in "$dest"/*/.diego-anselmo-managed; do
+    [[ -f "$marker" ]] || continue
+    managed_dir="$(dirname "$marker")"
+    managed_name="$(basename "$managed_dir")"
+    still_public=false
+    for src in "${SKILL_DIRS[@]}"; do
+      if [[ "$(basename "$src")" == "$managed_name" ]]; then
+        still_public=true
+        break
+      fi
+    done
+    if [[ "$still_public" == false ]]; then
+      rm -rf "$managed_dir"
+      echo "  removida: $managed_name"
+    fi
+  done
+
   for src in "${SKILL_DIRS[@]}"; do
     [[ -f "$src/SKILL.md" ]] || { echo "Erro: skill declarada sem SKILL.md: $src" >&2; exit 1; }
     name="$(basename "$src")"

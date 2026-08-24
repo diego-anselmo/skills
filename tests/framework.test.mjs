@@ -132,6 +132,8 @@ test("instalação por stdin copia skills, registra proveniência e preserva con
   const backupsAntes = readdirSync(destino).filter((nome) => nome.startsWith("diagnose.backup."));
   assert.equal(backupsAntes.length, 1);
   assert(existsSync(join(destino, backupsAntes[0], "usuario.txt")));
+  escrever(join(destino, "skill-obsoleta", ".diego-anselmo-managed"), "source=diego-anselmo/skills\n");
+  escrever(join(destino, "skill-obsoleta", "SKILL.md"), "obsoleta");
 
   execFileSync("bash", [join(raiz, "scripts", "setup-diego-anselmo-skills.sh"), "--redeploy", destino], {
     cwd: raiz,
@@ -146,6 +148,7 @@ test("instalação por stdin copia skills, registra proveniência e preserva con
 
   const backupsDepois = readdirSync(destino).filter((nome) => nome.startsWith("diagnose.backup."));
   assert.equal(backupsDepois.length, 1);
+  assert.equal(existsSync(join(destino, "skill-obsoleta")), false);
 });
 
 test("bootstrap repara cache parcial antes de instalar", () => {
