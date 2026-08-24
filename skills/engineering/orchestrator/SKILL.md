@@ -129,8 +129,8 @@ Quando as Issues vierem do caso especial "projeto novo com apenas um PRD" (Fase 
 
 Depois de cada tarefa, execute verificacoes proporcionais e registre evidencia. Se falhar, invoque `/diagnose` antes de continuar.
 
-Cada Issue passa por `/code-review` depois dos testes e commits locais. Corrija achados de Standards ou Spec antes de chamar QA.
+Cada Issue e fechada por `/implement`, que possui seus gates: testes -> commits locais -> `/code-review` -> `/qa-analyst` -> push/PR da Issue. O Orchestrator nao repete esses gates nem publica a mesma mudanca.
 
-Quando a DAG estiver concluida, invoque obrigatoriamente `/qa-analyst`, sem excecao de tier. O QA confronta requisitos, Issues, implementacao, testes, cenarios de erro e mudancas fora de escopo. Falhas reabrem Issues ou criam novas tarefas e exigem novo code review.
+Se o repositorio usa uma promocao agregada (`develop` -> `main`, release branch ou equivalente), execute um **QA de integracao** depois que os PRs das Issues estiverem integrados e antes do PR final de promocao. Esse QA cobre interacoes entre Issues e regressao da release; falhas criam/corrigem Issues e bloqueiam apenas a promocao final.
 
-Commits locais podem anteceder QA porque fornecem um diff estavel e nao constituem entrega. Push da branch e abertura do PR somente ocorrem depois de QA aprovado. Se nao existir uma skill de fluxo Git/PR instalada, use as regras documentadas do repositorio; nunca invoque uma skill inexistente.
+Commits locais podem anteceder QA porque fornecem um diff estavel e nao constituem entrega. Cada push/PR exige o QA correspondente: QA da Issue para PR da Issue; QA de integracao para PR de promocao. Se nao existir uma skill de fluxo Git/PR instalada, use as regras documentadas do repositorio; nunca invoque uma skill inexistente.
