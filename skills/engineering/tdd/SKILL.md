@@ -64,15 +64,15 @@ Regras:
 - nao altere o teste para acomodar implementacao errada;
 - refactor nunca acontece em RED.
 
-## Fechamento
+## Fechamento e devolucao de controle
 
-Ao concluir:
+Ao concluir o loop:
 
 1. rode os testes diretamente afetados e o typecheck/build aplicavel;
 2. exercite a superficie real quando houver;
-3. permita commits locais pequenos como checkpoints;
-4. envie o diff para `/code-review`;
-5. corrija e repita a revisao;
-6. com code review aprovado, invoque `/qa-analyst`.
+3. reporte seams cobertos, comandos e resultados;
+4. devolva o controle ao chamador.
 
-Push e PR permanecem bloqueados ate QA aprovado. Commits locais nao sao entrega e podem anteceder o portao.
+Quando `/implement` ou `/orchestrator` chamou TDD, nao invoque code review, QA, push ou PR: o chamador e o unico dono desses gates.
+
+No uso standalone para uma mudanca permanente, depois da evidencia local siga uma unica vez para `/code-review` e `/qa-analyst`. Commits locais podem anteceder os gates; TDD nunca abre PR.

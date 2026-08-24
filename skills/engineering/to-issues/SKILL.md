@@ -5,7 +5,7 @@ description: Transforma planos, specs, PRDs e Epics em GitHub Issues rastreaveis
 
 # To Issues
 
-Use GitHub como tracker obrigatorio. Se o remote ou acesso nao estiver configurado, pare e invoque `/setup-skills`.
+GitHub e `docs/agents/issue-tracker.md` sao dependencias hard. Se o arquivo, remote ou acesso estiver ausente, instrua o usuario a executar `/setup-skills` e pare antes de publicar ou alterar Issues.
 
 ## Contrato de rastreabilidade de Epics
 

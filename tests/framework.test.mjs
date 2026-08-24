@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, lstatSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
 
 import { validarFramework } from "../scripts/framework-catalog.mjs";
@@ -127,6 +127,7 @@ test("instalação por stdin copia skills, registra proveniência e preserva con
   assert.equal(metadados.source, "diego-anselmo/skills");
   assert.equal(metadados.ref, "main");
   assert.equal(metadados.commit, "abcdef1234567890");
+  assert.equal(metadados.version, JSON.parse(readFileSync(join(raiz, "package.json"), "utf8")).version);
 
   const backupsAntes = readdirSync(destino).filter((nome) => nome.startsWith("diagnose.backup."));
   assert.equal(backupsAntes.length, 1);
@@ -145,4 +146,43 @@ test("instalação por stdin copia skills, registra proveniência e preserva con
 
   const backupsDepois = readdirSync(destino).filter((nome) => nome.startsWith("diagnose.backup."));
   assert.equal(backupsDepois.length, 1);
+});
+
+test("bootstrap repara cache parcial antes de instalar", () => {
+  const temporario = mkdtempSync(join(tmpdir(), "skills-bootstrap-"));
+  const pacote = join(temporario, "pacote", "diego-skills-test");
+  const cache = join(temporario, "cache");
+  const commit = "cacheparcial123";
+  const destino = join(temporario, "destino");
+  const instalador = readFileSync(join(raiz, "scripts", "setup-diego-anselmo-skills.sh"), "utf8");
+
+  escrever(
+    join(pacote, ".claude-plugin", "plugin.json"),
+    JSON.stringify({ skills: ["./skills/engineering/alpha"] }),
+  );
+  escrever(join(pacote, "skills", "engineering", "alpha", "SKILL.md"), "---\nname: alpha\ndescription: Alpha.\n---\n");
+  escrever(join(pacote, "scripts", "setup-diego-anselmo-skills.sh"), instalador);
+  escrever(join(cache, commit, "download-interrompido"), "parcial");
+
+  const arquivo = join(temporario, "framework.tar.gz");
+  execFileSync("tar", ["-czf", arquivo, "-C", join(temporario, "pacote"), "diego-skills-test"]);
+
+  execFileSync("bash", ["-s", "--", "--redeploy", destino], {
+    cwd: raiz,
+    env: {
+      ...process.env,
+      SKILLS_FRAMEWORK_ROOT: "",
+      SKILLS_FRAMEWORK_COMMIT: commit,
+      SKILLS_FRAMEWORK_REF: "main",
+      SKILLS_FRAMEWORK_CACHE_DIR: cache,
+      SKILLS_FRAMEWORK_ARCHIVE_URL: pathToFileURL(arquivo).href,
+    },
+    input: instalador,
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+
+  assert(existsSync(join(cache, commit, ".claude-plugin", "plugin.json")));
+  assert(existsSync(join(destino, "alpha", "SKILL.md")));
+  const metadados = JSON.parse(readFileSync(join(destino, ".diego-anselmo-skills.json"), "utf8"));
+  assert.equal(metadados.commit, commit);
 });

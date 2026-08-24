@@ -35,8 +35,7 @@ Five **state** roles:
 
 Every triaged issue should carry exactly one category role and one state role. If state roles conflict, flag it and ask the maintainer before doing anything else.
 
-These are canonical role names — the actual label strings used in GitHub may differ. The mapping should have been provided to you - run `/setup-skills` if not.
-
+Os nomes reais das labels devem vir de `docs/agents/issue-tracker.md` e `docs/agents/triage-labels.md`; ambos sao dependencias hard. Se algum estiver ausente, instrua o usuario a executar `/setup-skills` e pare antes de comentar, rotular ou fechar Issues.
 State transitions: an unlabeled issue normally goes to `needs-triage` first; from there it moves to `needs-info`, `ready-for-agent`, `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies. The maintainer can override at any time — flag transitions that look unusual and ask before proceeding.
 
 ## Invocation

@@ -12,6 +12,8 @@ Revise a mudanca sem editar o codigo. O objetivo e separar dois tipos de falha q
 
 Esta revisao acontece depois dos testes e commits locais, mas antes de `/qa-analyst` e antes de abrir o PR.
 
+Glossario e ADRs sao dependencias soft. Leia-os quando existirem; se ausentes, prossiga com as regras disponiveis e registre a perda de contexto no eixo Standards.
+
 ## 1. Fixar o ponto de comparacao
 
 Use o ponto informado pelo usuario. Se nenhum foi informado, use a base declarada pela Issue ou pela convencao de branches do repositorio. Nao adivinhe entre referencias igualmente plausiveis.
@@ -90,7 +92,8 @@ Reporte requisitos faltantes, comportamento adicional nao solicitado e implement
 
 | Criterio | Estado | Evidencia |
 |---|---|---|
-| ... | atendido/parcial/ausente | arquivo, teste ou comando |
+| ... | atendido/parcial/ausente/fora de escopo | arquivo, teste ou comando |
+| comportamento adicional nao solicitado | fora de escopo | hunk correspondente |
 
 ## Veredito
 

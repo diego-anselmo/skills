@@ -89,8 +89,8 @@ O Orquestrador deve consultar esta tabela antes de disparar qualquer delegação
 | Pesquisa ampla de plataforma/spec | `/research` |
 | Falta de contexto | `/zoom-out` |
 | Gargalo recorrente nao mapeado | `/write-a-skill` |
-| Alinhamento antes de mudanca | `/grill-me` |
-| Handoff para outro agent | `/handoff` |
+
+`/grill-me` e `/handoff` sao user-invoked. Quando forem a ferramenta correta, explique o motivo e instrua o usuario a inicia-las; nao as delegue implicitamente.
 
 ---
 

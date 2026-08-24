@@ -16,9 +16,7 @@ ideia/feature
 -> orchestrator
 -> roadmap/to-issues
 -> implement
--> code-review
--> qa-analyst
--> PR
+   (interno: TDD -> verificacoes -> commits locais -> code-review -> QA -> push/PR)
 ```
 
 ## Tabela de decisao

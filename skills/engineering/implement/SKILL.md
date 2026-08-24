@@ -9,6 +9,8 @@ Execute uma unica GitHub Issue aprovada por vez. Esta skill nao planeja roadmap,
 
 A configuracao do GitHub, das labels e da documentacao e dependencia hard. Se `docs/agents/issue-tracker.md` estiver ausente, instrua o usuario a executar `/setup-skills` e pare.
 
+Use as definicoes compartilhadas de Module, Interface, Seam e Adapter do `CONTEXT.md`; quando o projeto nao as definir, consulte o vocabulario de `/improve-codebase-architecture`.
+
 ## Contrato de entrada
 
 Antes de editar:

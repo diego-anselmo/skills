@@ -120,12 +120,10 @@ O orchestrator delega para skills especializadas, por exemplo:
 
 Quando as Issues vierem do caso especial "projeto novo com apenas um PRD" (Fase 1), a execucao **nao** e paralela: despachar **um unico agente por vez**, na ordem de dependencia das Issues.
 
-1. Para o Epic atual, processe suas Issues uma a uma por `/implement`: TDD -> verificacoes -> commits locais -> `/code-review` -> `/qa-analyst` -> proxima Issue. Falha em review ou QA retorna a Issue ao ciclo antes de qualquer PR.
-2. Epic esgotado -> abrir PR da branch de trabalho para `develop`.
-   * PR verde (CI/testes passam) -> merge em `develop`.
-   * PR falhar -> corrigir os problemas, reexecutar a verificacao e so entao mergear.
-3. Apos o merge, voltar para a branch `develop` e avancar para o proximo Epic da fila, repetindo o loop ate que todos os Epics do PRD estejam finalizados.
-4. Ao concluir todos os Epics, abrir o merge final de `develop` para `main`.
+1. Para o Epic atual, processe suas Issues uma a uma por `/implement`: TDD -> verificacoes -> commits locais -> `/code-review` -> `/qa-analyst` -> push/PR da Issue. Falha em review ou QA retorna a mesma Issue ao ciclo antes de qualquer push.
+2. A proxima Issue so inicia depois que o PR da anterior estiver integrado na branch base definida pelo repositorio.
+3. O Epic termina quando todos os PRs filhos estiverem integrados e seus criterios de sucesso forem verificados; atualize a Issue da Epic e avance para a proxima.
+4. Ao concluir todos os Epics, siga a convencao do repositorio para promover a branch de integracao para producao. Nao invente `develop` quando o projeto nao a utiliza.
 
 ## Fase 5 - Verificacao e QA
 

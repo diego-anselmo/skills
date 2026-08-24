@@ -7,7 +7,7 @@ description: Diagnostica bugs e regressoes por reproducao, minimizacao, hipotese
 
 Nao sugira tentativas. Construa evidencia, encontre a causa raiz, aplique a menor correcao e repita o cenario original.
 
-Leia o glossario de dominio e os ADRs da area quando existirem. Eles sao dependencias soft: a ausencia reduz precisao, mas nao bloqueia o diagnostico.
+Leia o glossario de dominio e os ADRs da area quando existirem. Eles sao dependencias soft: a ausencia reduz precisao, mas nao bloqueia o diagnostico. Para escolher a superficie de regressao, use as definicoes compartilhadas de Module, Interface, Seam e Adapter.
 
 ## Segredos e artefatos
 

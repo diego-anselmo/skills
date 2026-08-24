@@ -80,9 +80,10 @@ if [[ ! -f "$REPO/.claude-plugin/plugin.json" ]]; then
     trap cleanup_staging EXIT
     archive_url="${SKILLS_FRAMEWORK_ARCHIVE_URL:-$FRAMEWORK_REPOSITORY/archive/$commit.tar.gz}"
     curl -fsSL "$archive_url" | tar -xz -C "$staging" --strip-components=1
-    if [[ -d "$cache_dir" ]]; then
+    if [[ -f "$cache_dir/.claude-plugin/plugin.json" ]]; then
       rm -rf "$staging"
     else
+      rm -rf "$cache_dir"
       mv "$staging" "$cache_dir"
     fi
     trap - EXIT
@@ -170,9 +171,9 @@ fi
 }
 
 declare -a SKILL_DIRS=()
-while IFS= read -r relative_skill; do
+while IFS= read -r relative_skill || [[ -n "$relative_skill" ]]; do
   [[ -n "$relative_skill" ]] && SKILL_DIRS+=("$REPO/${relative_skill#./}")
-done < <(sed -n 's/^[[:space:]]*"\(\.\/skills\/[^"]*\)"[,]*/\1/p' "$REPO/.claude-plugin/plugin.json")
+done < <(tr ',' '\n' <"$REPO/.claude-plugin/plugin.json" | sed -n 's/.*"\(\.\/skills\/[^"]*\)".*/\1/p')
 
 [[ ${#SKILL_DIRS[@]} -gt 0 ]] || {
   echo "Erro: o manifesto nao contem skills publicas." >&2

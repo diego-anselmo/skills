@@ -14,6 +14,22 @@ _Evitar_: alltomatos framework, clone de skills
 Unidade composavel de instrucao definida por uma pasta com `SKILL.md`.
 _Evitar_: plugin, comando como sinonimo
 
+**Module**:
+Qualquer unidade com Interface e implementacao: funcao, classe, pacote ou slice.
+_Evitar_: component, service
+
+**Interface**:
+Tudo que um caller precisa saber para usar um Module: tipos, invariantes, erros, ordem, configuracao e performance.
+_Evitar_: assinatura como definicao completa, API
+
+**Seam**:
+Local onde a Interface permite alterar comportamento sem editar o caller; e tambem a superficie de teste.
+_Evitar_: detalhe interno, boundary
+
+**Adapter**:
+Implementacao concreta que ocupa um Seam.
+_Evitar_: abstracao criada sem variacao real
+
 **Skill publica**:
 Skill pertencente a `engineering`, `productivity` ou `misc` e declarada na whitelist do plugin.
 _Evitar_: toda pasta encontrada, skill instalada por acidente
@@ -47,6 +63,9 @@ _Evitar_: code review como substituto, CI como aprovacao de QA
 - O Framework distribui Skills publicas.
 - Cada Skill possui exatamente um ModoInvocacao.
 - O ManifestoInstalado identifica uma revisao exata do Framework.
+- Um Module apresenta uma Interface.
+- Um Adapter ocupa um Seam e satisfaz a Interface.
+- Callers e testes observam o Module pelo mesmo Seam.
 - Uma Issue aprovada e executada por `implement`.
 - CodeReview aprovado libera QA.
 - QA aprovado libera push e PR.
