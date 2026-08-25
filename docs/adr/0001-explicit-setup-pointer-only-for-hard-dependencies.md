@@ -1,10 +1,10 @@
-# Explicit `/setup-matt-pocock-skills` pointer only for hard dependencies
+# Dependencias hard e soft de `/setup-skills`
 
-Engineering skills depend on per-repo config (issue tracker, triage label vocabulary, domain doc layout) seeded by `/setup-matt-pocock-skills`. Some skills cannot meaningfully function without that config — they have to publish to a specific issue tracker or apply a specific label string. Others only use it to sharpen output (vocabulary, ADR awareness) and degrade gracefully without it.
+Skills de engenharia consomem configuracao por repositorio: GitHub, labels de triagem e layout de documentacao. Algumas nao produzem resultado correto sem essa configuracao; outras apenas ficam menos precisas.
 
-We split these into **hard-dependency** and **soft-dependency** skills:
+## Decisao
 
-- **Hard dependency** (`to-issues`, `to-prd`, `triage`) — include an explicit one-liner: _"… should have been provided to you — run `/setup-matt-pocock-skills` if not."_ Without the mapping, output is wrong, not just fuzzy.
-- **Soft dependency** (`diagnose`, `tdd`, `improve-codebase-architecture`, `zoom-out`) — reference "the project's domain glossary" and "ADRs in the area you're touching" in vague prose only. If the docs aren't there, the skill still works; output is just less sharp.
+- **Dependencia hard** (`to-issues`, `to-prd`, `triage`, `roadmap`, `implement`): instrua o usuario a executar `/setup-skills` quando `docs/agents/issue-tracker.md` ou a configuracao exigida estiver ausente. Sem o mapeamento, pare antes de publicar, rotular ou executar uma Issue.
+- **Dependencia soft** (`diagnose`, `tdd`, `code-review`, `improve-codebase-architecture`, `zoom-out`): consulte o glossario do projeto e os ADRs aplicaveis quando existirem. A ausencia nao bloqueia o trabalho; declare a perda de contexto quando ela afetar a conclusao.
 
-The split keeps soft-dependency skills token-light and avoids cargo-culting the setup pointer into places where it isn't load-bearing.
+O split mantem skills soft pequenas e evita carregar um ponteiro de setup onde ele nao e load-bearing. Dependencias hard falham cedo; dependencias soft degradam explicitamente.

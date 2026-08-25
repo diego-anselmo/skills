@@ -1,0 +1,5 @@
+interface:
+  display_name: "Skill Router"
+  short_description: "Escolhe a skill certa sem executar"
+policy:
+  allow_implicit_invocation: false

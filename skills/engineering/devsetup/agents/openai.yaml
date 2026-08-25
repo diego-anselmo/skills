@@ -1,0 +1,5 @@
+interface:
+  display_name: "Dev Setup"
+  short_description: "Provisiona ambiente Windows explicitamente"
+policy:
+  allow_implicit_invocation: false

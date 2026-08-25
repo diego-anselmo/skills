@@ -1,0 +1,5 @@
+interface:
+  display_name: "Git Guardrails"
+  short_description: "Instala bloqueios para Git destrutivo"
+policy:
+  allow_implicit_invocation: false

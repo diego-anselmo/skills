@@ -7,6 +7,8 @@ description: Gerencia o estado estrategico e as Epics do projeto, mantendo IDs e
 
 Gerencie `ORCHESTRATOR-ROADMAP.md` como a bussola estrategica do projeto. O roadmap resume o plano; o GitHub Issue da Epic e a fonte detalhada de contexto e rastreabilidade.
 
+GitHub e a configuracao de tracker sao dependencias hard. Se `docs/agents/issue-tracker.md` estiver ausente, instrua o usuario a executar `/setup-skills` e pare antes de criar ou sincronizar Epics.
+
 ## Estrutura obrigatoria
 
 O arquivo deve conter:

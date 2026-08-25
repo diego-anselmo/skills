@@ -1,37 +1,28 @@
-# Governança de Skills
+# Governanca de Skills
 
-Skills são organizadas em pastas de buckets sob `skills/`:
+Leia e siga [`AGENTS.md`](./AGENTS.md), fonte canonica das regras deste repositorio.
 
-- `engineering/` — trabalho diário de código
-- `productivity/` — ferramentas para workflow não relacionadas a código
-- `misc/` — mantidas mas raramente usadas
-- `personal/` — vinculadas ao setup pessoal, não promovidas
-- `in-progress/` — rascunhos não prontos para distribuição
-- `deprecated/` — não utilizadas
+Invariantes load-bearing:
 
-Toda skill em `engineering/`, `productivity/` ou `misc/` deve ter referência no `README.md` raiz e entrada em `.claude-plugin/plugin.json`. Skills em `personal/`, `in-progress/` e `deprecated/` não devem aparecer em ambos.
-
-## Protocolo de Agentic Workflow (/orchestrator)
-
-Este repositório utiliza um modelo de delegação hierárquica focado em conformidade:
-
-1. **Entrada**: `/orchestrator` audita o ambiente (fases 1-4).
-2. **Delegação**: O `orchestrator` atua como Arquiteto (não executa código pesado).
-3. **Execução**: Delega para skills especializadas (`diagnose`, `tdd`, etc.).
-4. **Portão de QA (mandatório)**: ao final de todo desenvolvimento — para qualquer Tier de risco, sem exceção — o `orchestrator` **deve** invocar obrigatoriamente a skill `/qa-analyst` para analisar o código gerado/alterado antes de abrir o PR. Bugs ou gaps encontrados reabrem a DAG como novas tarefas; só após a análise de QA aprovar é que o `/git-flow-pr-standard` pode ser acionado.
-5. **Expansão**: Gargalos não mapeados → invocação automática do `/write-a-skill`.
-
-## Arquitetura do Sistema
+1. origem ativa: `diego-anselmo/skills`;
+2. `.claude-plugin/plugin.json` e a whitelist publica;
+3. skills user-invoked mantem frontmatter Claude e policy Codex pareados;
+4. `npm run check` valida catalogo, versao, links e testes;
+5. cada GitHub Issue e executada por `/implement`;
+6. `/code-review` revisa Standards e Spec antes de `/qa-analyst`;
+7. commits locais podem anteceder QA;
+8. push e PR somente depois de QA aprovado;
+9. nenhuma skill inexistente pode ser invocada como etapa do fluxo.
 
 ```mermaid
 graph TD
-    User[/Usuário/] -->|1. Inicia| Orchestrator[/Orchestrator - Mestra/]
-    Orchestrator -->|2. Audita/Repara| SetupSkills[/setup-skills/]
-    Orchestrator -->|3. Delega Trabalho| Specialized[Skills Especializadas]
-    Specialized -->|4. Resolve| Codebase[Base de Código]
-    Specialized -->|5. Portão de QA obrigatório| QAAnalyst[/qa-analyst/]
-    QAAnalyst -->|Aprovado| GitFlow[/git-flow-pr-standard/]
-    QAAnalyst -->|Bugs/gaps| Specialized
-    Specialized -->|Se gargalo| WriteSkill[/write-a-skill/]
-    WriteSkill -->|Nova Skill| Specialized
+    Orchestrator --> Implement
+    Implement --> TDD
+    TDD --> LocalCommit[Commits locais]
+    LocalCommit --> CodeReview[Code review: Standards + Spec]
+    CodeReview -->|correcoes| TDD
+    CodeReview -->|aprovado| QA[QA obrigatorio]
+    QA -->|gaps| TDD
+    QA -->|aprovado| Push
+    Push --> PR
 ```

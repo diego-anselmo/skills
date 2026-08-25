@@ -1,70 +1,31 @@
-# Governance Rules for Fork: alltomatos/skills
+# Whitelist publica e proveniencia de `diego-anselmo/skills`
 
 **Status**: Active  
-**Date**: 2026-06-04  
-**Authors**: Ronaldo Davi (@alltomatos)  
-**Context**: Fork of [mattpocock/skills](https://github.com/mattpocock/skills) with Brazilian Portuguese support
+**Origem**: decisao iniciada em `alltomatos/skills`, mantida e ampliada por `diego-anselmo/skills`
 
-## Decision
+## Contexto
 
-The `alltomatos/skills` fork enforces strict scope boundaries through a dual-filter system: explicit inclusion in `.claude-plugin/plugin.json` AND exclusion of non-production buckets (`personal/`, `in-progress/`, `deprecated/`) from discovery and installation pipelines.
+O framework acumula skills de producao, utilitarios, experimentos e configuracoes pessoais. Descoberta indiscriminada pode distribuir material instavel ou privado. Instalacoes sem commit registrado tambem tornam atualizacoes impossiveis de auditar.
 
-## Rationale
+## Decisao
 
-### Why Explicit Inclusion?
+1. `.claude-plugin/plugin.json` e a unica whitelist de Skills publicas.
+2. `engineering/`, `productivity/` e `misc/` sao buckets publicos; `personal/`, `in-progress/` e `deprecated/` nunca sao instalados implicitamente.
+3. O instalador le a whitelist em vez de descobrir todas as pastas por `find`.
+4. Skills sao copiadas para o destino. Symlink so seria aceitavel para origem persistente, mas nao faz parte do instalador suportado.
+5. Execucao remota resolve `ref` para commit antes do download e guarda o framework em cache persistente por commit.
+6. Cada destino recebe `.diego-anselmo-skills.json` com origem, ref, commit e versao.
+7. Atualizacao remota e informada, mas exige autorizacao antes do re-deploy.
 
-The original `mattpocock/skills` uses a "two-level discovery" pattern: the CLI walks up to 2 levels deep in `skills/` directories, finding all `SKILL.md` files. This works for a single-author repo but becomes problematic for forks where:
+## Consequencias
 
-1. **Scope Control**: Forks accumulate experimental or personal skills that shouldn't be installed by default.
-2. **Stability**: Skills in `in-progress/` are incomplete and may break user workflows.
-3. **Privacy**: Skills in `personal/` contain configurations specific to the maintainer's environment.
+- uma pasta nova nao e publicada por acidente;
+- manifesto, README e estrutura precisam mudar juntos;
+- remover uma Skill da whitelist e uma mudanca de API publica;
+- instalacoes sobrevivem a limpeza de diretorios temporarios;
+- um clone local deixa de ser necessario para verificar proveniencia;
+- `npm run check` bloqueia drift entre catalogo, links, versao e metadata de invocacao.
 
-The `.claude-plugin/plugin.json` acts as a "whitelist" — only skills listed there are considered part of the public API.
+## Linhagem
 
-### Why Exclusion by Bucket?
-
-Three buckets are intentionally excluded from discovery across all pipelines:
-
-- **`personal/`**: Skills tied to maintainer's local setup (API keys, project-specific templates, dev tools)
-- **`in-progress/`**: Skills under development, incomplete, or unstable
-- **`deprecated/`**: Skills superseded by newer versions or no longer relevant
-
-This exclusion is enforced in:
-1. **`plugin.json`**: No skills from these buckets are listed
-2. **`scripts/link-skills.sh`**: `find` command excludes these paths
-3. **`scripts/setup-alltomatos-skills.sh`**: Same exclusion pattern
-
-## Implications
-
-### For Users
-
-- **Stable Installation**: `npx skills@latest add alltomatos/skills` only installs production-ready skills
-- **Privacy Protection**: No accidental exposure of personal configurations
-- **Upgrade Path**: Skills in `deprecated/` remain in the repo for reference but aren't installed
-
-### For Maintainers
-
-- **Gradual Release**: Skills can live in `in-progress/` until mature enough for `plugin.json`
-- **Personal Workspace**: `personal/` bucket allows maintainer to keep private skills in the same repo
-- **Legacy Preservation**: `deprecated/` bucket serves as an audit trail without breaking existing installations
-
-### Compatibility
-
-The fork maintains 100% API compatibility with the original `mattpocock/skills`. Users can switch between forks seamlessly — the only difference is the set of skills available by default.
-
-## Implementation
-
-```bash
-# In all scripts, the find command must exclude non-production buckets:
-find "$REPO/skills" -name SKILL.md \
-    -not -path '*/node_modules/*' \
-    -not -path '*/deprecated/*' \
-    -not -path '*/personal/*' \
-    -not -path '*/in-progress/*'
-```
-
-The `.claude-plugin/plugin.json` must be the single source of truth for which skills are considered "public" and installable by default.
-
-## Future Considerations
-
-If new buckets are added, they should be evaluated against this governance model. The principle is: **explicit inclusion, implicit exclusion**.
+Este repositorio preserva credito a [alltomatos/skills](https://github.com/alltomatos/skills) e [mattpocock/skills](https://github.com/mattpocock/skills). Credito historico nao altera a origem operacional: instaladores, manifests e locks ativos apontam para `diego-anselmo/skills`.

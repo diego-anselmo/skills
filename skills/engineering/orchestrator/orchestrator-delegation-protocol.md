@@ -13,13 +13,13 @@ O Orquestrador opera com base em **Tiers de Risco**. A autonomia é concedida co
 O Orquestrador reconhece tarefas T1 (limpeza, documentações simples que não alteram lógica, refatorações safe e setups de ferramentas/linters) como elegíveis para o **Fast Path**:
 - **Bypass de Processo**: Pula obrigatoriamente a atualização/auditoria de Roadmap estratégico global e as sessões burocráticas/extensivas de interrogatório via `/grill-with-docs` ou `/grill-me`.
 - **Execução Atômica**: O Orquestrador planeja e executa a tarefa imediatamente de forma direta.
-- **Guardrails de Qualidade Mandatórios**: O fluxo deve honrar rigorosamente o rito de TDD e acionar `/qa-analyst` antes de qualquer PR. Se nao houver skill de PR disponivel, orientar o fluxo Git manualmente e pedir confirmacao humana.
-- **Ação**: Executa silenciosamente → Loga no `ESTADO_ORQUESTRATOR.md` → Finaliza o PR da mudança atômica.
+- **Guardrails de Qualidade Mandatorios**: Mudanca de codigo passa por `/implement`: TDD, verificacoes, commits locais, `/code-review` e `/qa-analyst`. Push e PR continuam bloqueados ate QA aprovado.
+- **Acao**: Executa a mudanca atomica, registra no `ESTADO_ORQUESTRATOR.md` e entrega por PR somente depois dos gates.
 
 ### Tier 2: Execução em Batch (Risco Médio)
 - **Configuração de ambiente**: Instalação de linters e formatadores, instrumentação de cobertura de testes, criação de ADRs estruturais e melhorias de performance localizada sem breaking changes.
 - **Burocracia Reduzida**: Exige alinhamento com o `/roadmap` ativo antes de rodar os batches, mas permite agregação de commits.
-- **Ação**: Executa o lote sob guardrail do TDD → Loga no `ESTADO_ORQUESTRATOR.md` → Reporta no final do batch.
+- **Acao**: Executa cada Issue por `/implement`, permite commits locais agregados quando pertencem ao mesmo lote, registra o estado e reporta ao final.
 
 ### Tier 3: Governança Estratégica (Interativa Obrigatória)
 Para decisões que impactam o domínio do projeto, a autonomia é **suspensa**. O Orquestrador deve pausar, apresentar o plano e aguardar o "Go" humano.
@@ -35,12 +35,9 @@ Para decisões que impactam o domínio do projeto, a autonomia é **suspensa**. 
 ## Gatilho de Aprovação por Risco
 
 O Orquestrador possui autonomia diferenciada baseada na criticidade técnica:
-- **Tier 1 (Fast Path):** Execução sem interrupção humana. Pula as etapas de interrogatório/grill e auditoria do Roadmap. Execução atômica e direta, validando apenas o TDD local e commits semânticos no Git Flow.
-- **Tier 2 (Batchável):** Execução contínua do lote. O Orquestrador agrupa o resultado, requer verificação do Roadmap, e reporta apenas ao finalizar o bloco de tarefas ou se detectar falhas no TDD.
-- **Tier 3 (Risco Alto):** Requer aprovação explícita inicial do plano geral de tarefas. Para tarefas individuais na execução do DAG, o Orquestrador tentará prosseguir autonomamente após o "Go" inicial apenas se:
-  1. O suite de testes (TDD) passar totalmente.
-  2. A análise estática de tipos não reportar quebra de contrato.
-  Caso ambos sejam verdadeiros, o Orquestrador assume o risco e prossegue, logando a decisão no `ESTADO_ORQUESTRATOR.md` como "DECISÃO AUTÔNOMA". Se houver falha de validação, ele interrompe a execução do DAG imediatamente e solicita intervenção.
+- **Tier 1 (Fast Path):** Pula grill e auditoria global de Roadmap, mas preserva verificacoes, code review e QA.
+- **Tier 2 (Batchavel):** Executa continuamente o lote aprovado; cada Issue mantém seus gates e o batch para na primeira falha.
+- **Tier 3 (Risco Alto):** Requer aprovacao explicita do plano e dos contratos que afetam dominio, schema, autenticacao, dados ou API publica. A aprovacao libera somente o escopo registrado. Testes, tipos, code review e QA continuam obrigatorios; o Orchestrator nunca amplia autonomamente o risco aprovado.
 
 ---
 
@@ -80,17 +77,20 @@ O Orquestrador deve consultar esta tabela antes de disparar qualquer delegação
 | Problema | Skill |
 | --- | --- |
 | Governança & Orquestração | `/orchestrator` |
-| Versionamento & PRs | Fluxo Git disponivel no ambiente, com confirmacao humana |
-| Infraestrutura ausente | `/setup-skills` |
-| Linguagem de domínio ausente | `/grill-with-docs` |
+| Execucao de Issue aprovada | `/implement` |
+| Revisao Standards + Spec | `/code-review` |
+| QA final antes de push/PR | `/qa-analyst` |
+| Versionamento & PRs | Fluxo Git documentado, depois de QA |
+| Infraestrutura documental ausente | `/setup-skills` |
+| Linguagem de dominio ausente | `/grill-with-docs` |
 | Arquitetura degradada | `/improve-codebase-architecture` |
-| Bug difícil ou regressão | `/diagnose` |
-| Código sem testes | `/tdd` |
-| Análise de QA pós-desenvolvimento (obrigatório antes do PR) | `/qa-analyst` |
+| Bug dificil ou regressao | `/diagnose` |
+| Codigo sem testes | `/tdd` |
+| Pesquisa ampla de plataforma/spec | `/research` |
 | Falta de contexto | `/zoom-out` |
-| Gargalo não mapeado | `/write-a-skill` |
-| Alinhamento antes de mudança | `/grill-me` |
-| Handoff para outro agent | `/handoff` |
+| Gargalo recorrente nao mapeado | `/write-a-skill` |
+
+`/grill-me` e `/handoff` sao user-invoked. Quando forem a ferramenta correta, explique o motivo e instrua o usuario a inicia-las; nao as delegue implicitamente.
 
 ---
 
@@ -143,21 +143,36 @@ Após a última tarefa da DAG passar para `completed`, executa a fiscalização 
 ```
 - Opcional: Gerar um resumo de impacto das mudanças.
 
-### 3. Portão de QA (Mandatário, Pré-PR)
-Para toda tarefa que resultar em alteração de código, o ciclo de conclusão **não** avança para o PR sem passar pela análise da skill `/qa-analyst`. Isso vale para **todos os Tiers**, incluindo Fast Path (T1) — não há bypass.
-- [ ] `/qa-analyst` foi invocado sobre o diff/código gerado nesta tarefa?
-- [ ] Requisitos originais foram confrontados com a implementação (ambiguidades? lacunas?)
-- [ ] Casos de teste de erro/comportamento inesperado foram avaliados, não só o caminho feliz?
-- [ ] Bugs encontrados pela análise de QA foram registrados e resolvidos (ou reabertos como nova tarefa na DAG) antes de prosseguir?
+### 3. Code Review (Mandatario, Pre-QA)
 
-Falha neste portão -> **bloqueia** o avanço para o PR. O Orchestrator reabre a DAG com as tarefas de correção apontadas pela `/qa-analyst` e só prossegue após nova validação limpa.
+Depois dos testes e commits locais, toda mudanca de codigo passa por `/code-review`:
 
-### 4. Protocolo de PR e Fechamento de Ciclo (Mandatário)
-Somente após o Portão de QA ser aprovado, o Orchestrator pode iniciar o fluxo de PR disponível no ambiente. Nunca invoque uma skill de PR que nao esteja instalada:
-- [ ] O commit segue Conventional Commits?
-- [ ] A branch seguiu o padrão `tipo/issue-descricao`?
-- [ ] O template de PR foi preenchido?
-- [ ] Nenhuma credencial/secreto foi exposta?
+- [ ] Standards confrontou regras, glossario e ADRs?
+- [ ] Spec classificou cada criterio de aceite?
+- [ ] Achados bloqueantes foram corrigidos e revisados novamente?
+
+Code review aprovado libera QA; nao libera PR.
+
+### 4. Portao de QA (Mandatario, Pre-PR)
+
+`/qa-analyst` e o ultimo portao independente para todos os Tiers:
+
+- [ ] requisitos e Issue foram confrontados com a implementacao?
+- [ ] caminhos felizes, erros e barreiras de seguranca foram avaliados?
+- [ ] evidencias de testes e smoke test correspondem ao comportamento?
+- [ ] nao houve mudanca fora de escopo?
+
+Falha de QA reabre a DAG: correcao -> testes -> commit local -> code review -> novo QA.
+
+### 5. Protocolo de PR e Fechamento
+
+Somente depois de QA aprovado:
+
+- [ ] push da branch conforme regras do repositorio;
+- [ ] commits seguem a convencao local;
+- [ ] template de PR foi preenchido;
+- [ ] Issue, code review, QA e evidencias foram vinculados;
+- [ ] nenhuma credencial/secreto foi exposta.
 ---
 
 
@@ -165,8 +180,10 @@ Somente após o Portão de QA ser aprovado, o Orchestrator pode iniciar o fluxo 
 
 | GAP Identificado | Skill Delegada | Tier de Risco |
 |------------------|----------------|---------------|
-| Testes ausentes ou frágeis | `/tdd` | Batch |
-| Fim de desenvolvimento — análise de QA obrigatória pré-PR | `/qa-analyst` | Mandatório (todos os Tiers) |
+| Testes ausentes ou frageis | `/tdd` | Batch |
+| Issue aprovada para execucao | `/implement` | Conforme Issue |
+| Diff concluido, antes de QA | `/code-review` | Mandatorio |
+| Fim de desenvolvimento, antes de push/PR | `/qa-analyst` | Mandatorio |
 | Arquitetura degradada/acoplada | `/improve-codebase-architecture` | Batch |
 | Bug/regressão | `/diagnose` | Block |
 | Linguagem de domínio desalinhada | `/grill-with-docs` | Auto |

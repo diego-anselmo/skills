@@ -1,73 +1,82 @@
 # Governanca de Skills
 
-Este repositorio distribui skills para desenvolvimento assistido por agentes. O clone e a fonte do framework; as skills devem ser instaladas nos ambientes dos agents por `scripts/setup-alltomatos-skills.sh`.
+Repositorio canonico: `https://github.com/diego-anselmo/skills`.
 
-## Buckets
+Este framework distribui skills para desenvolvimento assistido por agentes. Ele deriva de `alltomatos/skills`, que deriva de `mattpocock/skills`; preserve creditos, mas toda instalacao e proveniencia ativa usam `diego-anselmo/skills`.
 
-Skills sao organizadas sob `skills/`:
+## Buckets e catalogo
+
+Skills vivem sob `skills/`:
 
 - `engineering/` - trabalho diario de codigo;
 - `productivity/` - workflow geral;
-- `misc/` - utilitarios mantidos, mas raramente usados;
-- `personal/` - setup pessoal, nao distribuido;
-- `in-progress/` - rascunhos, nao distribuido;
-- `deprecated/` - skills descontinuadas, nao distribuido.
+- `misc/` - utilitarios publicos pouco frequentes;
+- `personal/`, `in-progress/`, `deprecated/` - nao distribuidos.
 
-Skills distribuidas devem ter `SKILL.md`, aparecer no `README.md` e estar no manifesto `.claude-plugin/plugin.json` quando aplicavel.
+`.claude-plugin/plugin.json` e a whitelist publica. Toda skill em `engineering/`, `productivity/` ou `misc/` deve:
+
+1. possuir `SKILL.md` cujo `name` coincide com a pasta;
+2. aparecer no manifesto;
+3. possuir link no `README.md`;
+4. manter metadata de invocacao coerente.
+
+Execute `npm run check` depois de alterar skill, manifesto, instalador ou README.
+
+## Invocacao
+
+Cada skill e uma de duas:
+
+- **user-invoked**: exige `disable-model-invocation: true` e `agents/openai.yaml` com `allow_implicit_invocation: false`;
+- **model-invoked**: omite ambos e usa description rica em gatilhos.
+
+Entry points, modos persistentes e provisionamento de maquina sao user-invoked. Subskills compostas pelo `/orchestrator` permanecem model-invoked, mas qualquer side effect exige um fluxo explicitamente iniciado e os gates da propria skill. Uma skill user-invoked nunca deve ser chamada implicitamente por outra.
 
 ## Instalacao
 
-O script de instalacao pergunta onde instalar as skills e aceita Codex, Claude, Hermes ou caminho customizado. Uma instalacao pode atender mais de um agent CLI.
+Instalador canonico:
 
 ```bash
-./scripts/setup-alltomatos-skills.sh
+./scripts/setup-diego-anselmo-skills.sh
 ```
 
-O re-deploy apos atualizacao pode ser executado sem interacao:
+Re-deploy explicito:
 
 ```bash
-./scripts/setup-alltomatos-skills.sh --redeploy
+./scripts/setup-diego-anselmo-skills.sh --redeploy <destinos>
 ```
+
+O instalador copia apenas a whitelist, preserva conteudo anterior em backup, grava `.diego-anselmo-skills.json` e fixa o commit resolvido. Execucao via pipe usa cache persistente por commit; nunca crie links para diretorios temporarios.
 
 ## Contrato do Orchestrator
 
 O `/orchestrator` deve:
 
-1. verificar no inicio se o framework tem atualizacoes no remote GitHub;
-2. localizar o clone de origem atraves das skills instaladas, mesmo quando o projeto consumidor nao possui clone do framework;
-3. informar commits novos e fazer automaticamente o re-deploy nos ambientes em uso;
-4. verificar Git local e remote GitHub do projeto consumidor;
-5. bloquear o fluxo de implementacao quando nao houver repositorio GitHub configurado;
-6. criar ou atualizar documentacao antes da implementacao;
-7. usar `/roadmap`, `/grill-with-docs` e `/setup-skills` para estabelecer estrategia, dominio e governanca;
-8. fragmentar trabalho aprovado usando `/to-issues` no GitHub;
-9. manter `ESTADO_ORQUESTRATOR.md` como visao operacional, sem substituir as GitHub Issues;
-10. executar verificacoes, exigir `/qa-analyst` antes de qualquer PR e reabrir tarefas quando QA encontrar gaps.
-
-O orchestrator nao deve executar trabalho complexo diretamente quando uma skill especializada puder ser delegada.
-
-## Governanca do projeto consumidor
-
-Antes da implementacao, o projeto deve possuir:
-
-- Git inicializado;
-- remote GitHub acessivel;
-- `AGENTS.md` ou `CLAUDE.md`;
-- `CONTEXT.md` ou `CONTEXT-MAP.md`;
-- `ORCHESTRATOR-ROADMAP.md`;
-- `docs/agents/issue-tracker.md`;
-- `docs/agents/triage-labels.md`;
-- `docs/agents/domain.md`;
-- `docs/adr/` quando houver decisoes relevantes.
-
-GitHub e a fonte de Issues, rastreabilidade, revisao e historico. Nao usar tracker local como fallback silencioso.
+1. verificar origem, ref, versao e commit pelo manifesto instalado, sem exigir clone;
+2. consultar o remote `diego-anselmo/skills` sem `pull`, merge ou reset;
+3. informar atualizacoes, mas exigir autorizacao antes do re-deploy;
+4. validar Git e remote GitHub do projeto consumidor;
+5. documentar dominio e decisoes antes da implementacao;
+6. manter roadmap e GitHub Issues como fontes persistentes;
+7. delegar cada Issue aprovada para `/implement`;
+8. exigir `/code-review` antes de `/qa-analyst`;
+9. bloquear push e PR ate QA aprovado.
 
 ## Fluxo de qualidade
 
-O ciclo padrao e:
-
 ```text
-GitHub -> documentacao -> roadmap -> GitHub Issues -> implementacao -> testes -> QA -> PR
+GitHub Issue
+-> implement/TDD
+-> verificacoes
+-> commits locais
+-> code-review (Standards + Spec)
+-> QA
+-> push
+-> PR
 ```
 
-TDD, diagnostico, testes E2E de seguranca e consulta de documentacao devem ser delegados para as skills correspondentes quando aplicavel. O portao de QA e obrigatorio para qualquer tier de risco.
+Commits locais podem anteceder QA; eles estabilizam o diff e nao constituem entrega. Falha em code review ou QA retorna a Issue ao ciclo. Nenhum PR e aberto antes da aprovacao do QA.
+
+## Dependencias
+
+- Hard: `to-issues`, `to-prd`, `triage`, `roadmap`, `implement` exigem configuracao criada por `/setup-skills`.
+- Soft: `diagnose`, `tdd`, `code-review`, `improve-codebase-architecture`, `zoom-out` usam glossario e ADRs quando existirem, sem bloquear na ausencia.

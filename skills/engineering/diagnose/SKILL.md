@@ -1,89 +1,125 @@
 ---
 name: diagnose
-description: Disciplined diagnosis loop for hard bugs and performance regressions. Reproduce → minimise → hypothesise → instrument → fix → regression-test. Use when user says "diagnose this" / "debug this", reports a bug, says something is broken/throwing/failing, or describes a performance regression.
+description: Diagnostica bugs e regressoes por reproducao, minimizacao, hipoteses falsificaveis, instrumentacao e teste de regressao. Use quando algo falha, quebra ou fica lento.
 ---
 
 # Diagnose
 
-A discipline for hard bugs. Skip phases only when explicitly justified.
+Nao sugira tentativas. Construa evidencia, encontre a causa raiz, aplique a menor correcao e repita o cenario original.
 
-When exploring the codebase, use the project's domain glossary to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
+Leia o glossario de dominio e os ADRs da area quando existirem. Eles sao dependencias soft: a ausencia reduz precisao, mas nao bloqueia o diagnostico. Para escolher a superficie de regressao, use as definicoes compartilhadas de Module, Interface, Seam e Adapter.
 
-## Phase 1 — Build a feedback loop
+## Segredos e artefatos
 
-**This is the skill.** Everything else is mechanical. If you have a fast, deterministic, agent-runnable pass/fail signal for the bug, you will find the cause — bisection, hypothesis-testing, and instrumentation all just consume that signal. If you don't have one, no amount of staring at code will save you.
+Comandos, logs, HARs, traces e dumps podem conter credenciais. Antes de mostrar ou persistir qualquer saida:
 
-Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give up.**
+- substitua secrets por `<REDACTED>`;
+- mantenha credenciais em variaveis de ambiente;
+- cite somente linhas que carregam sinal;
+- nao grave headers de autenticacao em fixtures.
 
-### Ways to construct one — try them in roughly this order
+Se a redacao remover a evidencia necessaria, explique o limite e solicite um artefato seguro.
 
-1. **Failing test** at whatever seam reaches the bug — unit, integration, e2e.
-2. **Curl / HTTP script** against a running dev server.
-3. **CLI invocation** with a fixture input, diffing stdout against a known-good snapshot.
-4. **Headless browser script** (Playwright / Puppeteer) — drives the UI, asserts on DOM/console/network.
-5. **Replay a captured trace.** Save a real network request / payload / event log to disk; replay it through the code path in isolation.
-6. **Throwaway harness.** Spin up a minimised version of the problem in a new project, then debug that.
+## Fase 1 - Loop red-capable
 
-## Phase 2 — Minimise the problem
+Antes de formular solucao, obtenha um comando rapido, deterministico e executavel pelo agente que possa ficar vermelho para o sintoma exato informado pelo usuario.
 
-**This is the skill.** If you can't reproduce the bug in isolation, you can't fix it. If you can't minimise the problem, you can't reproduce it. If you can't reproduce it, you can't fix it.
+Ordem preferida:
 
-### Ways to minimise — try them in roughly this order
+1. teste no seam que alcanca o bug;
+2. requisicao HTTP/curl contra o servidor;
+3. CLI com fixture e saida esperada;
+4. browser headless verificando DOM, console e rede;
+5. replay de trace ou payload capturado;
+6. harness minimo;
+7. property/fuzz loop para falha intermitente;
+8. `git bisect run` para regressao entre estados conhecidos;
+9. comparacao diferencial entre versoes/configuracoes;
+10. script HITL baseado em `scripts/hitl-loop.template.sh`.
 
-1. **Remove code** until the bug disappears. Add it back in small chunks to find the culprit.
-2. **Remove data** until the bug disappears. Add it back in small chunks to find the culprit.
-3. **Remove configuration** until the bug disappears. Add it back in small chunks to find the culprit.
-4. **Remove dependencies** until the bug disappears. Add them back in small chunks to find the culprit.
-5. **Remove environment** until the bug disappears. Add it back in small chunks to find the culprit.
+O loop esta pronto somente quando:
 
-## Phase 3 — Hypothesise
+- ja foi executado e reproduziu o sintoma correto;
+- falha pelo comportamento, nao por erro de setup;
+- leva segundos, nao minutos;
+- produz o mesmo veredito em repeticoes;
+- pode ser executado sem intervencao, salvo pelo template HITL.
 
-**This is the skill.** If you can't explain the bug, you can't fix it. If you can't explain the bug, you can't reproduce it. If you can't reproduce it, you can't fix it.
+Sem esse comando, nao avance para hipoteses. Liste o que foi tentado e solicite acesso, artefato redigido ou instrumentacao temporaria.
 
-### Ways to hypothesise — try them in roughly this order
+## Fase 2 - Reproduzir e minimizar
 
-1. **Check the obvious.** Is the bug in the code you're looking at? Is it in the code you're calling? Is it in the code calling you?
-2. **Check the documentation.** Is the bug in the documentation you're looking at? Is it in the documentation you're calling? Is it in the documentation calling you?
-3. **Check the logs.** Is the bug in the logs you're looking at? Is it in the logs you're calling? Is it in the logs calling you?
-4. **Check the tests.** Is the bug in the tests you're looking at? Is it in the tests you're calling? Is it in the tests calling you?
-5. **Check the codebase.** Is the bug in the codebase you're looking at? Is it in the codebase you're calling? Is it in the codebase calling you?
+Execute o loop mais de uma vez. Confirme que ele detecta o problema relatado, nao uma falha vizinha.
 
-## Phase 4 — Instrument
+Reduza uma variavel por vez:
 
-**This is the skill.** If you can't see the bug, you can't fix it. If you can't see the bug, you can't reproduce it. If you can't reproduce it, you can't fix it.
+- entrada e dados;
+- callers;
+- configuracao;
+- dependencias;
+- ambiente;
+- passos do fluxo.
 
-### Ways to instrument — try them in roughly this order
+Cada elemento restante deve ser load-bearing: removê-lo faz o loop ficar verde. A reproducao minima sera a base do teste de regressao.
 
-1. **Add logs.** Add logs to the code you're looking at. Add logs to the code you're calling. Add logs to the code calling you.
-2. **Add metrics.** Add metrics to the code you're looking at. Add metrics to the code you're calling. Add metrics to the code calling you.
-3. **Add traces.** Add traces to the code you're looking at. Add traces to the code you're calling. Add traces to the code calling you.
-4. **Add assertions.** Add assertions to the code you're looking at. Add assertions to the code you're calling. Add assertions to the code calling you.
-5. **Add tests.** Add tests to the code you're looking at. Add tests to the code you're calling. Add tests to the code calling you.
+## Fase 3 - Hipoteses falsificaveis
 
-## Phase 5 — Fix
+Produza de tres a cinco hipoteses ordenadas por probabilidade e custo de teste.
 
-**This is the skill.** If you can't fix the bug, you can't reproduce it. If you can't reproduce it, you can't fix it.
+Formato obrigatorio:
 
-### Ways to fix — try them in roughly this order
+```text
+H1: Se <causa> for verdadeira, entao <probe> produzira <resultado observavel>.
+```
 
-1. **Check the obvious.** Is the bug in the code you're looking at? Is it in the code you're calling? Is it in the code calling you?
-2. **Check the documentation.** Is the bug in the documentation you're looking at? Is it in the documentation you're calling? Is it in the documentation calling you?
-3. **Check the logs.** Is the bug in the logs you're looking at? Is it in the logs you're calling? Is it in the logs calling you?
-4. **Check the tests.** Is the bug in the tests you're looking at? Is it in the tests you're calling? Is it in the tests calling you?
-5. **Check the codebase.** Is the bug in the codebase you're looking at? Is it in the codebase you're calling? Is it in the codebase calling you?
+Uma explicacao sem predicao testavel e apenas um palpite. Mostre a lista ao usuario; conhecimento de dominio pode reordena-la. Se o usuario estiver AFK, prossiga pela ordem registrada.
 
-## Phase 6 — Regression-test
+## Fase 4 - Instrumentar e testar
 
-**This is the skill.** If you can't verify the fix, you can't fix it. If you can't fix it, you can't reproduce it. If you can't reproduce it, you can't fix it.
+Cada probe deve distinguir hipoteses especificas. Altere uma variavel por vez.
 
-### Ways to regression-test — try them in roughly this order
+Preferencia:
 
-1. **Add a test.** Add a test to the code you're looking at. Add a test to the code you're calling. Add a test to the code calling you.
-2. **Add a log.** Add a log to the code you're looking at. Add a log to the code you're calling. Add a log to the code calling you.
-3. **Add a metric.** Add a metric to the code you're looking at. Add a metric to the code you're calling. Add a metric to the code calling you.
-4. **Add a trace.** Add a trace to the code you're looking at. Add a trace to the code you're calling. Add a trace to the code calling you.
-5. **Add an assertion.** Add an assertion to the code you're looking at. Add an assertion to the code you're calling. Add an assertion to the code calling you.
+1. debugger ou REPL;
+2. assertion ou probe no seam;
+3. log direcionado;
+4. trace/metrica quando o fluxo for distribuido.
 
-## References
+Logs temporarios recebem prefixo unico, como `[DEBUG-a4f2]`. Nunca use “logar tudo e procurar depois”.
 
-- [lote-2.md](references/lote-2.md): Lote 2: `internal/application/usecases`
+Para performance:
+
+1. estabeleca baseline reproduzivel;
+2. use profiler, query plan ou medicao apropriada;
+3. faça bisect quando houver estado conhecido;
+4. compare medidas antes e depois.
+
+## Fase 5 - Teste de regressao e correcao
+
+Escreva o teste de regressao antes do fix, no seam que reproduz o padrao real.
+
+Se o seam disponivel for superficial demais, nao escreva um teste que gera falsa confianca. Registre que a arquitetura impede travar a regressao e encaminhe o gap para `/improve-codebase-architecture`.
+
+Com seam correto:
+
+1. transforme a reproducao minima em teste;
+2. observe o teste falhar pelo motivo esperado;
+3. aplique a menor correcao de causa raiz;
+4. observe o teste passar;
+5. repita o loop original, nao minimizado.
+
+Nao silencie excecoes, nao relaxe assertions e nao crie special case para a fixture.
+
+## Fase 6 - Limpeza e fechamento
+
+Antes de declarar resolvido:
+
+- loop original verde;
+- teste de regressao verde;
+- testes diretamente afetados verdes;
+- todos os prefixos `[DEBUG-...]` removidos;
+- artefatos temporarios removidos;
+- causa correta e hipoteses descartadas registradas;
+- nenhum secret persistido.
+
+Se o fix for entrega permanente, encaminhe o diff para `/code-review` e depois `/qa-analyst`. Push e PR permanecem bloqueados ate QA aprovado.

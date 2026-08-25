@@ -1,0 +1,5 @@
+interface:
+  display_name: "Setup Pre Commit"
+  short_description: "Instala hooks pre-commit explicitamente"
+policy:
+  allow_implicit_invocation: false

@@ -1,38 +1,71 @@
-# alltomatos/skills
+# diego-anselmo/skills
 
-Coleção de skills de agent (slash commands e comportamentos) carregadas pelo Claude Code. Skills são organizadas em buckets e consumidas pela configuração por repositório emitida por `/setup-matt-pocock-skills`.
+Framework de skills para desenvolvimento assistido por agentes, com governanca GitHub, documentacao persistente, TDD, revisao em dois eixos e QA obrigatorio.
 
-Fork de [mattpocock/skills](https://github.com/mattpocock/skills) — arquitetura original por Matt Pocock.
+Origem ativa: [diego-anselmo/skills](https://github.com/diego-anselmo/skills). Linhagem: fork de [alltomatos/skills](https://github.com/alltomatos/skills), por sua vez derivado de [mattpocock/skills](https://github.com/mattpocock/skills).
 
 ## Linguagem
 
-**Issue tracker**:
-A ferramenta que hospeda as issues de um repositório — GitHub Issues, Linear, uma convenção de markdown local em `.scratch/`, ou similar. Skills como `to-issues`, `to-prd`, `triage` e `qa` leem e escrevem nela.
-_Evitar_: backlog manager, backlog backend, issue host
-
-**Issue**:
-Uma unidade rastreada de trabalho dentro de um **Issue tracker** — um bug, tarefa, PRD ou slice produzido por `to-issues`.
-_Evitar_: ticket (usar apenas quando citando sistemas externos que os chamam de tickets)
-
-**Triage role**:
-Um label canônico de máquina de estados aplicado a uma **Issue** durante a triagem (ex: `needs-triage`, `ready-for-afk`). Cada papel mapeia para uma string de label real no **Issue tracker** via `docs/agents/triage-labels.md`.
+**Framework**:
+O conjunto versionado de Skills, manifesto, instalador e regras de governanca publicado por `diego-anselmo/skills`.
+_Evitar_: alltomatos framework, clone de skills
 
 **Skill**:
-Uma unidade de instrução compostável que estende o comportamento do agent. Definida por um diretório contendo `SKILL.md` com frontmatter YAML. Pode ser persistente (ex: `/caveman`, `/localize-pt-br`) ou one-shot (ex: `/triage`, `/diagnose`).
+Unidade composavel de instrucao definida por uma pasta com `SKILL.md`.
+_Evitar_: plugin, comando como sinonimo
 
-**Bucket**:
-Categoria de organização de skills — `engineering/`, `productivity/`, `misc/`. Skills em `personal/`, `in-progress/` e `deprecated/` são excluídas do pipeline de instalação.
+**Module**:
+Qualquer unidade com Interface e implementacao: funcao, classe, pacote ou slice.
+_Evitar_: component, service
 
-## Relações
+**Interface**:
+Tudo que um caller precisa saber para usar um Module: tipos, invariantes, erros, ordem, configuracao e performance.
+_Evitar_: assinatura como definicao completa, API
 
-- Um **Issue tracker** contém muitas **Issues**
-- Uma **Issue** carrega um **Triage role** por vez
-- Uma **Skill** pertence a um **Bucket**
-- **Skills** em `engineering/`, `productivity/`, `misc/` → listadas em `plugin.json` e `README.md`
-- **Skills** em `personal/`, `in-progress/`, `deprecated/` → excluídas de `plugin.json` e `README.md`
+**Seam**:
+Local onde a Interface permite alterar comportamento sem editar o caller; e tambem a superficie de teste.
+_Evitar_: detalhe interno, boundary
 
-## Ambiguidades sinalizadas
+**Adapter**:
+Implementacao concreta que ocupa um Seam.
+_Evitar_: abstracao criada sem variacao real
 
-- "backlog" era usado para significar tanto a *ferramenta* que hospeda issues quanto o *corpo de trabalho* dentro dela — resolvido: a ferramenta é o **Issue tracker**; "backlog" não é mais usado como termo de domínio.
-- "backlog backend" / "backlog manager" — resolvido: colapsados em **Issue tracker**.
-- "skill" vs "plugin" — resolvido: **Skill** é a unidade atômica; o `plugin.json` é o manifest do repositório, não uma skill.
+**Skill publica**:
+Skill pertencente a `engineering`, `productivity` ou `misc` e declarada na whitelist do plugin.
+_Evitar_: toda pasta encontrada, skill instalada por acidente
+
+**ModoInvocacao**:
+Contrato que define se uma Skill e iniciada somente pelo Usuario (`user-invoked`) ou tambem pelo agent (`model-invoked`).
+_Evitar_: trigger como autorizacao implicita
+
+**ManifestoInstalado**:
+Arquivo `.diego-anselmo-skills.json` que registra origem, ref, commit, versao e instante da copia instalada.
+_Evitar_: clone local como unica proveniencia, data de arquivo como versao
+
+**Issue**:
+Unidade rastreada de trabalho no GitHub: bug, tarefa, PRD, Epic ou slice vertical.
+_Evitar_: tarefa apenas em memoria, ticket local
+
+**PapelTriagem**:
+Label canonica da maquina de estados de uma Issue, mapeada em `docs/agents/triage-labels.md`.
+_Evitar_: label livre sem estado
+
+**CodeReview**:
+Revisao do diff em dois eixos independentes: Standards e Spec.
+_Evitar_: QA, lint ou teste como sinonimos
+
+**QA**:
+Portao final que confronta requisitos, implementacao, testes, erros e escopo antes de push e PR.
+_Evitar_: code review como substituto, CI como aprovacao de QA
+
+## Relacoes
+
+- O Framework distribui Skills publicas.
+- Cada Skill possui exatamente um ModoInvocacao.
+- O ManifestoInstalado identifica uma revisao exata do Framework.
+- Um Module apresenta uma Interface.
+- Um Adapter ocupa um Seam e satisfaz a Interface.
+- Callers e testes observam o Module pelo mesmo Seam.
+- Uma Issue aprovada e executada por `implement`.
+- CodeReview aprovado libera QA.
+- QA aprovado libera push e PR.

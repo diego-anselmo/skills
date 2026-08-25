@@ -1,36 +1,39 @@
 {
-  "name": "alltomatos-skills",
+  "name": "diego-anselmo-skills",
+  "version": "1.0.0",
+  "description": "Skills de engenharia com governanca GitHub, TDD, revisao em dois eixos e QA obrigatorio.",
+  "repository": "https://github.com/diego-anselmo/skills",
+  "license": "MIT",
   "skills": [
+    "./skills/engineering/code-review",
+    "./skills/engineering/devsetup",
     "./skills/engineering/diagnose",
-    "./skills/engineering/grill-with-docs",
     "./skills/engineering/grill-feature-with-docs",
-    "./skills/engineering/triage",
+    "./skills/engineering/grill-with-docs",
+    "./skills/engineering/implement",
     "./skills/engineering/improve-codebase-architecture",
+    "./skills/engineering/orchestrator",
+    "./skills/engineering/prototype",
+    "./skills/engineering/qa-analyst",
+    "./skills/engineering/query-docs",
+    "./skills/engineering/research",
+    "./skills/engineering/roadmap",
+    "./skills/engineering/scaffold-mvp",
+    "./skills/engineering/secure-e2e",
     "./skills/engineering/setup-skills",
+    "./skills/engineering/skill-router",
     "./skills/engineering/tdd",
     "./skills/engineering/to-issues",
     "./skills/engineering/to-prd",
+    "./skills/engineering/triage",
     "./skills/engineering/zoom-out",
-    "./skills/engineering/prototype",
     "./skills/productivity/caveman",
     "./skills/productivity/grill-me",
     "./skills/productivity/handoff",
     "./skills/productivity/write-a-skill",
-    "./skills/engineering/orchestrator",
-    "./skills/engineering/roadmap",
-    "./skills/engineering/secure-e2e",
-    "./skills/engineering/qa-analyst",
-    "./skills/engineering/query-docs",
+    "./skills/misc/git-guardrails-claude-code",
     "./skills/misc/migrate-to-shoehorn",
-    "./skills/misc/setup-pre-commit",
     "./skills/misc/scaffold-exercises",
-    "./skills/misc/git-guardrails-claude-code"
-  ],
-  "plugins": [
-    {
-      "name": "scaffold-mvp",
-      "description": "Initialize a new project with an agile, high-productivity MVP stack. Focused on clean engineering boundaries, atomic configurations, and system stability without rush or architectural shortcuts. Use when starting a new project in an empty repository.",
-      "path": "../skills/engineering/scaffold-mvp"
-    }
+    "./skills/misc/setup-pre-commit"
   ]
 }
